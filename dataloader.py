@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 import dataset
 
-class GPTDataLoader():
+class GPTDataLoaderWrapper():
     def __init__(
         self,
         text,
@@ -15,15 +15,16 @@ class GPTDataLoader():
         num_workers = 0 # number of CPU processes to use for preprocessing
         ):
         
+        self.gpt_dataset = None
         self.num_tokens = 0
         self.dataloader = None
 
         # instantiate BPE (byte pair encoding) tokenizer
         tokenizer = tiktoken.get_encoding("gpt2")
-        dataset = dataset.GPTDataset(text, tokenizer, max_length, stride)
-        self.num_tokens = dataset.num_tokens
+        self.gpt_dataset = dataset.GPTDataset(text, tokenizer, max_length, stride)
+        self.num_tokens = self.gpt_dataset.num_tokens
         self.dataloader = DataLoader(
-            dataset,
+            self.gpt_dataset,
             batch_size = batch_size,
             shuffle = shuffle,
             drop_last = drop_last,

@@ -15,11 +15,11 @@ class GPTDataset(Dataset):
             input_chunk = token_ids[i: i + max_length]
             target_chunk = token_ids[i+1: i + max_length + 1]
             self.input_token_ids.append(torch.tensor(input_chunk))
-            self.taget_token_ids.append(torch.tensor(target_chunk))
+            self.target_token_ids.append(torch.tensor(target_chunk))
             
     def __len__(self):
         # return total number of rows in dataset
-        return len(self.input_ids)
+        return len(self.input_token_ids)
     
     def __getitem__(self, index):
         # return specified row from dataset
