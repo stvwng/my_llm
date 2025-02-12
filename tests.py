@@ -1,6 +1,7 @@
 import pytest
 import torch
 import embeddings
+import attention
 
 # to run: pytest tests.py
 
@@ -16,9 +17,9 @@ def test_embeddings2():
 def test_embeddings3():
     assert test_embeddings.shape[2] == 256
     
-def test_SelfAttention():
+def test_attention():
     torch.manual_seed(789)
-    sa = SelfAttention() # TODO: add arguments for d_in and d_out
+    sa = Attention() # TODO: add arguments for d_in and d_out
     # TODO: assert output is as expected
     assert 1 == 1
     
