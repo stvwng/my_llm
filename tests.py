@@ -1,5 +1,8 @@
 import pytest
+import torch
 import embeddings
+
+# to run: pytest tests.py
 
 file_path = "the-verdict.txt"
 test_embeddings = embeddings.create_embeddings(file_path=file_path)
@@ -12,3 +15,10 @@ def test_embeddings2():
     
 def test_embeddings3():
     assert test_embeddings.shape[2] == 256
+    
+def test_SelfAttention():
+    torch.manual_seed(789)
+    sa = SelfAttention() # TODO: add arguments for d_in and d_out
+    # TODO: assert output is as expected
+    assert 1 == 1
+    
