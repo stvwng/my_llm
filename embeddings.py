@@ -50,7 +50,7 @@ def create_embeddings(
     drop_last = True, # drop the last batch if it is shorter than batch_size to prevent loss spikes in training
     num_workers = 0, # number of CPU processes to use for preprocessing 
     output_dim = 256,
-    vocab_size = 50257 # vocab size of BPE tokenizer implmented in dataset module
+    vocab_size = 50257 # vocab size of BPE tokenizer implemented in dataset module
     ):
     dl_wrapper = create_dataloader(
         url = url,

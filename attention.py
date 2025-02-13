@@ -7,7 +7,8 @@ class Attention(nn.Module):
         d_in, 
         d_out,
         context_length,
-        dropout=False, 
+        dropout=False,
+        num_heads, 
         qkv_bias=False
         ):
         '''
@@ -18,16 +19,22 @@ class Attention(nn.Module):
         dropout (bool): during training, randomly selected hidden layer units are ignored
           to prevent overfitting resulting from excessive reliance on any particular set
           of hidden layer units; this should be set to True only for training
+        num_heads (int): number of "heads", i.e., instances of the self-attention mechanism,
+          with its own weights; the output of all heads is combined in the final model.
         qkv_bias (bool): whether the layer will learn an additive bias
         
         '''
         
         # initialize weight matrices
         super().__init__()
+        assert (d_out % num_heads == 0), "d_out must be divisible by num_heads"
         self.d_out = d_out
+        self.num_heads = num_heads
+        self.head_dim = d_out // num_heads # reduce projection dimension to match desired output dimension
         self.W_query = nn.Linear(d_in, d_out, bias=qkv_bias)
         self.W_key = nn.Linear(d_in, d_out, bias=qkv_bias)
         self.W_value = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.out_proj = nn.Linear(d_out, d_out) # combine head outputs with a linear layer
         self.dropout = nn.Dropout(dropout)
         
         '''
@@ -40,7 +47,7 @@ class Attention(nn.Module):
         '''
         self.register_buffer(
             'mask',
-            torch.triu(torch.ones(context_length, context_length))
+            torch.triu(torch.ones(context_length, context_length)),
             diagonal=1
         )
         
@@ -51,17 +58,33 @@ class Attention(nn.Module):
         Returns a context vector
         '''
         
-        b, num_tokns, d_in = x.shape
-        
+        b, num_tokens, d_in = x.shape # tensor shape is (b, num_tokens, d_out)
         keys = self.W_key(x)
         queries = self.w_query(x)
         values = self.w_value(x)
         
-        attention_scores = queries @ keys.transpose(1, 2) # transpose dimensions 1 and 2, keeping batch dimensions at first position (0)
+        # split the matrix by adding a num_heads dimension
+        # then unroll the last dim: (b, num_tokens, d_out) -> (n, num_tokens, num_heads, head_dim)
+        keys = keys.view(b, num_tokens, self.num_heads, self.head_dim)
+        values = values.view(b, num_tokens, self.num_heads, self.head_dim)
+        queries = queries.view(b, num_tokens, self.num_heads, self.head_dim)
         
+        # transpose from shape (b, num_tokens, num_heads, head_dim) to
+        # (b, num_heads, num_tokens, head_dim)
+        keys = keys.transpose(1, 2)
+        queries = queries.transpose(1, 2)
+        values = values.transpose(1, 2)
+        
+        # compute dot product for each head
+        attention_scores = queries @ keys.transpose(2, 3)
+        # truncate mask to number of tokens
+        mask_bool = self.mask_bool()[:num_tokens, :num_tokens]
+         
+        # use mask to fill attention scores
         # In PyTorch, operations with a trailing underscore are performed in place
         attention_scores.masked_fill_(
-            self.mask.bool()[:num_tokens, :num_tokens], -torch.inf
+            self.mask.bool()[:num_tokens, :num_tokens], 
+            -torch.inf
         )
         
         '''
@@ -76,9 +99,11 @@ class Attention(nn.Module):
             attention_scores / keys.shape[-1]**0.5,
             dim=-1
         )
+        attention_weights = self.dropout(attention_weights)
         
-        if self.dropout:
-            attention_weights = self.dropout(attention_weights)
+        context_vector = (attention_weights @ values).transpose(1,2) # tensor shape (b, num_tokens, num_heads, head_dim)
         
-        context_vector = attention_weights @ values
+        # combine heads, where self.d_out = self.num_heads * self.head_dim
+        context_vector = context_vector.contiguous().view(b, num_tokens, self.d_out)
+        context_vector = self.out_proj(context_vec) # linear projection
         return context_vector
