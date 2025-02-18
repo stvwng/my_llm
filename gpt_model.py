@@ -64,9 +64,29 @@ class TransformerBlock(nn.Module):
         return x
     
 class LayerNorm(nn.Module):
-    def __init__(self, normalized_shape, eps=1e-5):
+    '''
+    Implements layer normalization to improve stability and efficiency of neural network training.
+    
+    Vanishing or exploding gradients can make training a neural network difficult. Layer normalization
+    adjusts the activations (outputs) of a neural network layer to have a mean of 0 and a variance of 1
+    (i.e., unit variance). This speeds up convergence to effective weights and ensures consistent,
+    reliable training.
+    
+    Layer normalization is typically applied before and after the multi-head attention module.
+    '''
+    def __init__(self, emb_dim):
         super().__init__()
+        self.eps =1e-5 # epsilon--a small constant added to variance to prevent division by 0
+        '''
+        scale and shift are trainable parameters that the LLM automatically adjusts during 
+        training if it would improve the model's performance on the training task
+        '''
+        self.scale = nn.Parameter(torch.ones(emb_dim))
+        self.shift = nn.Parameter(torch.zeroes(emb_dim))
         
     def forward(self, x):
-        return x
+        mean = x.mean(dim=-1, keepdim=True)
+        var = x.var(dim=-1, keepdim=True, unbiased=False)
+        norm_x = (x - mean) / torch.sqrt(var + self.eps)
+        return self.scale * norm_x + self.shift
         
