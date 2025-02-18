@@ -107,3 +107,30 @@ class GELU(nn.Module):
             torch.sqrt(torch.tensor(2.0 / torch.pi)) * (x + 0.044715 * torch.pow(x, 3))
         ))
         
+class FeedForward(nn.Module):
+    '''
+    This is a small neural network, consisting of 2 Linear layers and a GELU activation function,
+    that will be used in the TransformerBlock.
+    
+    The first layer increases the embedding dimension by a factor of 4, enabling improved 
+    ability to learn by exploring a richer representation space. This is followed by a GELU
+    activation function. The second layer contracts back to the original dimension.
+    
+    Essentially:
+    Linear Layer 1:
+        Input (2, 3, 768) -> Output (2, 3, 3072)
+    GELU activation
+    Linear Layer 2:
+        Input (2, 3, 3072) -> Output (2, 3, 768)
+    '''
+    def __init__(self, emb_dim):
+        super().__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(emb_dim, 4 * emb_dim),
+            GELU(),
+            nn.Linear(4 * emb_dim, emb_dim)
+        )
+        
+    def forward(self, x):
+        return self.layers(x)
+        
