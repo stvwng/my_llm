@@ -56,7 +56,7 @@ class GPTModel(nn.Module):
         logits = self.out_head(x)
         return logits
     
-class TransofrmerBlock(nn.Module):
+class TransformerBlock(nn.Module):
     def __init__(self):
         super().__init__()
         
