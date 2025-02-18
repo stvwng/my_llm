@@ -15,7 +15,7 @@ class Attention(nn.Module):
         Arguments:
         d_in (int): input dimensions
         d_out (int): output dimensions
-        context_length (int)
+        context_length (int): max numbers of input tokens that can be handled via positional embeddings
         dropout (bool): during training, randomly selected hidden layer units are ignored
           to prevent overfitting resulting from excessive reliance on any particular set
           of hidden layer units; this should be set to True only for training
