@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import attention
 
 class GPTModel(nn.Module):
     def __init__(
@@ -57,10 +58,43 @@ class GPTModel(nn.Module):
         return logits
     
 class TransformerBlock(nn.Module):
-    def __init__(self):
+    def __init__(self, emb_dim, context_length, num_heads, drop_rate, qkv_bias):
         super().__init__()
+        self.attention = Attention(
+            d_in = emb_dim,
+            d_out = emb_dim,
+            context_length = context_length,
+            num_heads = num_heads,
+            dropout = drop_rate,
+            qkv_bias = qkv_bias
+        )
+        self.ff = FeedForward(emb_dim)
+        self.norm1 = LayerNorm(emb_dim)
+        self.norm2 = LayerNorm(emb_dim)
+        self.drop_shortcut = nn.Dropout(drop_rate)
         
     def forward(self, x):
+        '''
+        A shortcut connection creates an alternative shorter path for the gradient to flow through the network by
+        skipping one or more layers. This is done by adding the output of one layer to the output of a later layer.
+        
+        This is done to solve the vanishing gradient problem (i.e., gradients, which guide weight updates during
+        training, become progressively smaller as they propagate backwards during the layers). This makes it harder
+        to train earlier layers.
+        '''
+        
+        shortcut = x
+        x = self.norm1(x)
+        x = self.attention(x)
+        x = self.drop_shortcut(x)
+        x = x + shortcut
+        
+        shortcut = x
+        x = self.norm2(x)
+        x = self.ff(x)
+        x = self.drop_shortcut(x)
+        x = x + shortcut
+        
         return x
     
 class LayerNorm(nn.Module):

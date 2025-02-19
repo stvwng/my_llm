@@ -7,7 +7,7 @@ class Attention(nn.Module):
         d_in, 
         d_out,
         context_length,
-        dropout=False,
+        dropout=0.0,
         num_heads, 
         qkv_bias=False
         ):
@@ -16,9 +16,10 @@ class Attention(nn.Module):
         d_in (int): input dimensions
         d_out (int): output dimensions
         context_length (int): max numbers of input tokens that can be handled via positional embeddings
-        dropout (bool): during training, randomly selected hidden layer units are ignored
+        dropout (float): during training, randomly selected hidden layer units are ignored
           to prevent overfitting resulting from excessive reliance on any particular set
-          of hidden layer units; this should be set to True only for training
+          of hidden layer units; 10% random drop out of hidden units for default
+          This should be set to a positive value only for training
         num_heads (int): number of "heads", i.e., instances of the self-attention mechanism,
           with its own weights; the output of all heads is combined in the final model.
         qkv_bias (bool): whether the layer will learn an additive bias
