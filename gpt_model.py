@@ -32,28 +32,29 @@ class GPTModel(nn.Module):
         self.token_embedding = nn.Embedding(vocab_size, emb_dim)
         self.position_embedding = nn.Embedding(context_length, emb_dim)
         self.dropout_embedding = nn.Dropout(drop_rate)
+        
         self.transformer_blocks = nn.Sequential(
-            [TransformerBlock(        
-                vocab_size=50257, 
+            *[TransformerBlock(        
                 context_length=1024, 
                 emb_dim=768,
                 num_heads=12,
-                num_layers=12,
                 drop_rate=0.1,
                 qkv_bias=False) 
              for _ in range(num_layers)])
+        
         self.final_norm = LayerNorm(emb_dim)
         self.out_head = nn.Linear(emb_dim, vocab_size, bias=False)
         
     def forward(self, in_index):
         batch_size, seq_len = in_index.shape
         token_embeddings = self.token_embedding(in_index)
+        # device setting allows training the model on a CPU or GPU
         position_embeddings = self.position_embedding(torch.arange(seq_len, device=in_index.device))
         
         x = token_embeddings + position_embeddings
         x = self.dropout_embedding(x)
         x = self.transformer_blocks(x)
-        x = self.final_form(x)
+        x = self.final_norm(x)
         logits = self.out_head(x)
         return logits
     
