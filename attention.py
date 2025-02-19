@@ -7,8 +7,8 @@ class Attention(nn.Module):
         d_in, 
         d_out,
         context_length,
-        dropout=0.0,
         num_heads, 
+        dropout=0.0,
         qkv_bias=False
         ):
         '''
@@ -48,8 +48,7 @@ class Attention(nn.Module):
         '''
         self.register_buffer(
             'mask',
-            torch.triu(torch.ones(context_length, context_length)),
-            diagonal=1
+            torch.triu(torch.ones(context_length, context_length), diagonal=1)
         )
         
     def forward(self, x):
@@ -61,8 +60,8 @@ class Attention(nn.Module):
         
         b, num_tokens, d_in = x.shape # tensor shape is (b, num_tokens, d_out)
         keys = self.W_key(x)
-        queries = self.w_query(x)
-        values = self.w_value(x)
+        queries = self.W_query(x)
+        values = self.W_value(x)
         
         # split the matrix by adding a num_heads dimension
         # then unroll the last dim: (b, num_tokens, d_out) -> (n, num_tokens, num_heads, head_dim)
@@ -79,7 +78,7 @@ class Attention(nn.Module):
         # compute dot product for each head
         attention_scores = queries @ keys.transpose(2, 3)
         # truncate mask to number of tokens
-        mask_bool = self.mask_bool()[:num_tokens, :num_tokens]
+        mask_bool = self.mask.bool()[:num_tokens, :num_tokens]
          
         # use mask to fill attention scores
         # In PyTorch, operations with a trailing underscore are performed in place
@@ -106,5 +105,5 @@ class Attention(nn.Module):
         
         # combine heads, where self.d_out = self.num_heads * self.head_dim
         context_vector = context_vector.contiguous().view(b, num_tokens, self.d_out)
-        context_vector = self.out_proj(context_vec) # linear projection
+        context_vector = self.out_proj(context_vector) # linear projection
         return context_vector

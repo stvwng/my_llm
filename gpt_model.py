@@ -60,7 +60,7 @@ class GPTModel(nn.Module):
 class TransformerBlock(nn.Module):
     def __init__(self, emb_dim, context_length, num_heads, drop_rate, qkv_bias):
         super().__init__()
-        self.attention = Attention(
+        self.attention = attention.Attention(
             d_in = emb_dim,
             d_out = emb_dim,
             context_length = context_length,
@@ -116,7 +116,7 @@ class LayerNorm(nn.Module):
         training if it would improve the model's performance on the training task
         '''
         self.scale = nn.Parameter(torch.ones(emb_dim))
-        self.shift = nn.Parameter(torch.zeroes(emb_dim))
+        self.shift = nn.Parameter(torch.zeros(emb_dim))
         
     def forward(self, x):
         mean = x.mean(dim=-1, keepdim=True)
