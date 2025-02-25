@@ -21,60 +21,37 @@ model = gpt_model.GPTModel(
 )
 model.eval()
 
-'''
-batch = []
-text1 = "Every effort moves you"
-text2 = "Every day holds a"
-
-batch.append(torch.tensor(tokenizer.encode(text1)))
-batch.append(torch.tensor(tokenizer.encode(text2)))
-batch = torch.stack(batch, dim=0)
-# print(batch)
-'''
-
-'''
-block = gpt_model.TransformerBlock(emb_dim=emb_dim, context_length=context_length, num_heads=num_heads, drop_rate=drop_rate, qkv_bias=qkv_bias)
-output = block(x)
-
-print("Input shape: ", x.shape)
-print("Output shape: ", output.shape)
-'''
-
-'''
-model = gpt_model.GPTModel()
-out = model(batch)
-# print("Input batch:\n", batch)
-# print("\nOutput shape:", out.shape)
-# print(out)
-'''
-
-def generate_text_simple(model, index, max_new_tokens, context_size):
+def generate(model, index, max_new_tokens, context_size, temperature=0.0, top_k=None, eos_id=None):
     for _ in range(max_new_tokens):
         index_cond = index[:, -context_size:]
         with torch.no_grad():
             logits = model(index_cond)
-            
         logits = logits[:, -1, :]
-        probas = torch.softmax(logits, dim=-1)
-        index_next = torch.argmax(probas, dim=-1, keepdim=True)
+        
+        # filter logits with top k sampling
+        if top_k is not None:
+            top_logits, _ = torch.topk(logits, top_k)
+            min_val = top_logits[:, -1]
+            logits = torch.where(
+                logits < min_val,
+                torch.tensor(float('-inf')).to(logits.device),
+                logits
+            )
+            
+        # apply temperature scaling
+        if temperature > 0.0:
+            logits = logits / temperature
+            probs = torch.softmax(logits, dim=-1)
+            index_next = torch.multinomial(probs, num_samples=1)
+        else: # greedy next token selection
+            index_next = torch.argmax(probas, dim=-1, keepdim=True)
+        
+        if index_next == eos_id:
+            break
+        
         index = torch.cat((index, index_next), dim=1)
         
     return index
-
-'''
-start_context = "Hello, I am"
-encoded = tokenizer.encode(start_context)
-print("encoded: ", encoded)
-encoded_tensor = torch.tensor(encoded).unsqueeze(0)
-print("encoded_tensor.shape", encoded_tensor.shape)
-
-model.eval()
-out = generate_text_simple(model=model, index=encoded_tensor, max_new_tokens=6, context_size=context_length)
-print("Output: ", out)
-print("Output length: ", len(out[0]))
-decoded_text = tokenizer.decode(out.squeeze(0).tolist())
-print(decoded_text)
-'''
 
 def text_to_token_ids(text, tokenizer):
     encoded = tokenizer.encode(text, allowed_special={'<|endoftexxt|>'})
@@ -84,17 +61,6 @@ def text_to_token_ids(text, tokenizer):
 def token_ids_to_text(token_ids, tokenizer):
     flat = token_ids.squeeze(0) # remove batch dimension
     return tokenizer.decode(flat.tolist())
-
-'''
-start_context = "Every effort moves you"
-token_ids = generate_text_simple(
-    model=model,
-    index=text_to_token_ids(start_context, tokenizer),
-    max_new_tokens=10,
-    context_size=context_length
-    )
-print("output text: ", token_ids_to_text(token_ids, tokenizer))
-'''
 
 file_path = "the-verdict.txt"
 with open(file_path, "r", encoding="utf-8") as file:
@@ -227,15 +193,26 @@ def generate_and_print_sample(
     context_size = model.position_embedding.weight.shape[0]
     encoded = text_to_token_ids(start_context, tokenizer).to(device)
     with torch.no_grad():
-        token_ids = generate_text_simple(model=model, index=encoded, max_new_tokens=50, context_size=context_size)
+        token_ids = generate(model=model, index=encoded, max_new_tokens=50, context_size=context_size)
     decoded_text = token_ids_to_text(token_ids, tokenizer)
     print(decoded_text.replace("\n", " "))
     model.train()
     
-torch.manual_seed(123)
-model.to(device)
-optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
-num_epochs = 10
-train_losses, val_losses, tokens_seen = train_model_simple(model, train_loader_wrapper, val_loader_wrapper, optimizer, device, num_epochs=num_epochs, eval_freq=5, eval_iter=5, start_context="Every effort moves you", tokenizer=tokenizer)
+    
+    
+# torch.manual_seed(123)
+# model.to(device)
+# optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
+# num_epochs = 10
+# train_losses, val_losses, tokens_seen = train_model_simple(model, train_loader_wrapper, val_loader_wrapper, optimizer, device, num_epochs=num_epochs, eval_freq=5, eval_iter=5, start_context="Every effort moves you", tokenizer=tokenizer)
 
-        
+torch.manual_seed(123)
+token_ids = generate(
+    model=model, 
+    index=text_to_token_ids("Every effort moves you", tokenizer),
+    max_new_tokens=15,
+    context_size=context_length,
+    top_k=25,
+    temperature=1.4
+    )
+print("Output: ", token_ids_to_text(token_ids, tokenizer))
