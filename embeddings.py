@@ -4,7 +4,7 @@ import torch
 import dataset
 import dataloader
 
-def create_dataloader(
+def create_dataloader_wrapper(
     url = "",
     file_path = "",
     batch_size = 4,
@@ -17,7 +17,7 @@ def create_dataloader(
     '''
     Argument: url as string
     
-    Returns dataloader wrapper, allowing access to dataloader
+    Returns GPTDataLoaderWrapper, allowing access to gpt_dataloader
     '''
     
     if url != "":
@@ -29,7 +29,7 @@ def create_dataloader(
     with open(temp_file_path, "r", encoding="utf-8") as f:
             text = f.read()
         
-    new_dataloader = dataloader.GPTDataLoaderWrapper(
+    new_dataloader_wrapper = dataloader.GPTDataLoaderWrapper(
         text=text,
         batch_size=batch_size,
         max_length=max_length,
@@ -38,7 +38,7 @@ def create_dataloader(
         drop_last=drop_last,
         num_workers=num_workers
     )
-    return new_dataloader
+    return new_dataloader_wrapper
 
 def create_embeddings(
     url = "",
@@ -52,7 +52,7 @@ def create_embeddings(
     output_dim = 256,
     vocab_size = 50257 # vocab size of BPE tokenizer implemented in dataset module
     ):
-    dl_wrapper = create_dataloader(
+    dl_wrapper = create_dataloader_wrapper(
         url = url,
         file_path = file_path,
         batch_size = batch_size,
@@ -64,7 +64,7 @@ def create_embeddings(
     )
     
     token_embedding_layer = torch.nn.Embedding(vocab_size, output_dim)
-    data_iter = iter(dl_wrapper.dataloader)
+    data_iter = iter(dl_wrapper.gpt_dataloader)
     inputs, targets = next(data_iter)
     token_embeddings = token_embedding_layer(inputs)
     

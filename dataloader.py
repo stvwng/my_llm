@@ -17,13 +17,13 @@ class GPTDataLoaderWrapper():
         
         self.gpt_dataset = None
         self.num_tokens = 0
-        self.dataloader = None
+        self.gpt_dataloader = None
 
         # instantiate BPE (byte pair encoding) tokenizer
         tokenizer = tiktoken.get_encoding("gpt2")
         self.gpt_dataset = dataset.GPTDataset(text, tokenizer, max_length, stride)
         self.num_tokens = self.gpt_dataset.num_tokens
-        self.dataloader = DataLoader(
+        self.gpt_dataloader = DataLoader(
             self.gpt_dataset,
             batch_size = batch_size,
             shuffle = shuffle,
