@@ -10,7 +10,7 @@ class GPTModel(nn.Module):
         emb_dim=768,
         num_heads=12,
         num_layers=12,
-        drop_rate=0.1,
+        drop_rate=0.0,
         qkv_bias=False
         ):
         '''
@@ -23,7 +23,7 @@ class GPTModel(nn.Module):
         num_layers (int): number of transformer blocks in model
         drop_rate (float): during training, randomly selected hidden layer units are ignored
           to prevent overfitting resulting from excessive reliance on any particular set
-          of hidden layer units; 10% random drop out of hidden units for default
+          of hidden layer units; 10% random drop out of hidden units for training
           This should be set to a positive value only for training
         qkv_bias (bool): whether the layer will learn an additive bias
         '''
@@ -35,11 +35,11 @@ class GPTModel(nn.Module):
         
         self.transformer_blocks = nn.Sequential(
             *[TransformerBlock(        
-                context_length=1024, 
-                emb_dim=768,
-                num_heads=12,
-                drop_rate=0.1,
-                qkv_bias=False) 
+                context_length=context_length, 
+                emb_dim=emb_dim,
+                num_heads=num_heads,
+                drop_rate=drop_rate,
+                qkv_bias=qkv_bias) 
              for _ in range(num_layers)])
         
         self.final_norm = LayerNorm(emb_dim)

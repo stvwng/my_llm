@@ -206,13 +206,14 @@ def generate_and_print_sample(
 # num_epochs = 10
 # train_losses, val_losses, tokens_seen = train_model_simple(model, train_loader_wrapper, val_loader_wrapper, optimizer, device, num_epochs=num_epochs, eval_freq=5, eval_iter=5, start_context="Every effort moves you", tokenizer=tokenizer)
 
-torch.manual_seed(123)
-token_ids = generate(
-    model=model, 
-    index=text_to_token_ids("Every effort moves you", tokenizer),
-    max_new_tokens=15,
-    context_size=context_length,
-    top_k=25,
-    temperature=1.4
-    )
-print("Output: ", token_ids_to_text(token_ids, tokenizer))
+
+# torch.manual_seed(123)
+# token_ids = generate(
+#     model=model, 
+#     index=text_to_token_ids("Every effort moves you", tokenizer),
+#     max_new_tokens=15,
+#     context_size=context_length,
+#     top_k=25,
+#     temperature=1.4
+#     )
+# print("Output: ", token_ids_to_text(token_ids, tokenizer))
