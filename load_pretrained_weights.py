@@ -121,4 +121,4 @@ token_ids = train_model.generate(
     temperature=1.5
 )
 
-# print("Output:\n", train_model.token_ids_to_text(token_ids, tokenizer))
+print("Output:\n", train_model.token_ids_to_text(token_ids, tokenizer))
