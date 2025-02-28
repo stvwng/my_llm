@@ -44,7 +44,7 @@ def generate(model, index, max_new_tokens, context_size, temperature=0.0, top_k=
             probs = torch.softmax(logits, dim=-1)
             index_next = torch.multinomial(probs, num_samples=1)
         else: # greedy next token selection
-            index_next = torch.argmax(probas, dim=-1, keepdim=True)
+            index_next = torch.argmax(logits, dim=-1, keepdim=True)
         
         if index_next == eos_id:
             break
