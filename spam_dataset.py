@@ -18,6 +18,8 @@ class SpamDataset(Dataset):
             for encoded_text in self.encoded_texts
         ]
         
+        self.data["Label"] = self.data["Label"].map({"ham": 0, "spam": 1})
+        
     def __getitem__(self, index):
         encoded = self.encoded_texts[index]
         label = self.data.iloc[index]["Label"]
