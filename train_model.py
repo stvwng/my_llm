@@ -100,20 +100,28 @@ def calc_loss_batch(input_batch, target_batch, model, device):
     return loss
 
 def calc_loss_loader(
-    data_loader_wrapper,
     model,
     device,
-    num_batches=None
+    num_batches=None,
+    data_loader_wrapper=None,
+    data_loader=None,
 ):
     total_loss = 0.
-    if len(data_loader_wrapper.gpt_dataloader) == 0:
+    if data_loader_wrapper is not None:
+        dl = data_loader_wrapper.gpt_dataloader
+    elif data_loader is not None:
+        dl = data_loader
+    else:
+        raise ValueError("Provide a data_loader_wrapper or data_loader")
+    
+    if len(dl) == 0:
         return float("nan")
     elif num_batches is None:
-        num_batches = len(data_loader_wrapper.gpt_dataloader)
+        num_batches = len(dl)
     else:
-        num_batches = min(num_batches, len(data_loader_wrapper.gpt_dataloader))
+        num_batches = min(num_batches, len(dl))
         
-    for i, (input_batch, target_batch) in enumerate(data_loader_wrapper.gpt_dataloader):
+    for i, (input_batch, target_batch) in enumerate(dl):
         if i < num_batches:
             loss = calc_loss_batch(input_batch, target_batch, model, device)
             total_loss += loss.item()
@@ -125,8 +133,8 @@ def calc_loss_loader(
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 with torch.no_grad(): # disable gradient tracking for efficiency, because not training yet
-    train_loss = calc_loss_loader(train_loader_wrapper, model, device)
-    val_loss = calc_loss_loader(val_loader_wrapper, model, device)
+    train_loss = calc_loss_loader(data_loader_wrapper=train_loader_wrapper, model=model, device=device)
+    val_loss = calc_loss_loader(data_loader_wrapper=val_loader_wrapper, model=model, device=device)
     
 # print("Training loss: ", train_loss)
 # print("Validatio loss: ", val_loss)
@@ -178,8 +186,8 @@ def evaluate_model(
 ):
     model.eval()
     with torch.no_grad(): # disable gradient tracking, which is not required for evaluation, to reduce compute overhead
-        train_loss = calc_loss_loader(train_loader_wrapper, model, device, num_batches=eval_iter)
-        val_loss = calc_loss_loader(val_loader_wrapper, model, device, num_batches=eval_iter)
+        train_loss = calc_loss_loader(data_loader_wrapper=train_loader_wrapper, model=model, device=device, num_batches=eval_iter)
+        val_loss = calc_loss_loader(data_loader_wrapper=val_loader_wrapper, model=model, device=device, num_batches=eval_iter)
     model.train()
     return train_loss, val_loss
 
