@@ -203,7 +203,7 @@ def evaluate_model(
     model.eval()
     with torch.no_grad(): # disable gradient tracking, which is not required for evaluation, to reduce compute overhead
         train_loss = calc_loss_loader(data_loader=train_loader, model=model, device=device, num_batches=eval_iter)
-        val_loss = calc_loss_loader(data_loader=val_loader, model=model, device, num_batches=eval_iter)
+        val_loss = calc_loss_loader(data_loader=val_loader, model=model, device=device, num_batches=eval_iter)
     model.train()
     return train_loss, val_loss
 
