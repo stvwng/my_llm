@@ -141,8 +141,6 @@ with torch.no_grad(): # disable gradient tracking for efficiency, because not tr
 
 def train_model_simple(
     model,
-    train_loader_wrapper,
-    val_loader_wrapper,
     optimizer,
     device,
     num_epochs,
@@ -150,13 +148,31 @@ def train_model_simple(
     eval_iter,
     start_context,
     tokenizer,
+    train_loader=None,
+    val_loader=None,
+    train_loader_wrapper=None,
+    val_loader_wrapper=None,
 ):
+    if train_loader_wrapper is not None:
+        tl = train_loader_wrapper.gpt_dataloader
+    elif train_loader is not None:
+        tl = train_loader
+    else:
+        raise ValueError("Please provide a train_loader_wrapper or a train_loader")
+    
+    if val_loader_wrapper is not None:
+        vl = train_loader_wrapper.gpt_dataloader
+    elif val_loader is not None:
+        vl = train_loader
+    else:
+        raise ValueError("Please provide a val_loader_wrapper or a val_loader")
+    
     train_losses, val_losses, track_tokens_seen = [], [], []
     tokens_seen, global_step = 0, -1
     
     for epoch in range(num_epochs):
         model.train()
-        for input_batch, target_batch in train_loader_wrapper.gpt_dataloader:
+        for input_batch, target_batch in tl:
             optimizer.zero_grad() # reset loss gradients from previous iteration
             loss = calc_loss_batch(input_batch, target_batch, model, device)
             loss.backward() # calculate loss gradients
@@ -165,7 +181,7 @@ def train_model_simple(
             global_step += 1
             
             if global_step % eval_freq == 0:
-                train_loss, val_loss = evaluate_model(model, train_loader_wrapper, val_loader_wrapper, device, eval_iter)
+                train_loss, val_loss = evaluate_model(model, tl, vl, device, eval_iter)
                 train_losses.append(train_loss)
                 val_losses.append(val_loss)
                 track_tokens_seen.append(tokens_seen)
@@ -179,15 +195,15 @@ def train_model_simple(
 
 def evaluate_model(
     model,
-    train_loader_wrapper,
-    val_loader_wrapper,
+    train_loader,
+    val_loader,
     device,
     eval_iter
 ):
     model.eval()
     with torch.no_grad(): # disable gradient tracking, which is not required for evaluation, to reduce compute overhead
-        train_loss = calc_loss_loader(data_loader_wrapper=train_loader_wrapper, model=model, device=device, num_batches=eval_iter)
-        val_loss = calc_loss_loader(data_loader_wrapper=val_loader_wrapper, model=model, device=device, num_batches=eval_iter)
+        train_loss = calc_loss_loader(data_loader=train_loader, model=model, device=device, num_batches=eval_iter)
+        val_loss = calc_loss_loader(data_loader=val_loader, model=model, device, num_batches=eval_iter)
     model.train()
     return train_loss, val_loss
 
@@ -212,7 +228,20 @@ def generate_and_print_sample(
 # model.to(device)
 # optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
 # num_epochs = 10
-# train_losses, val_losses, tokens_seen = train_model_simple(model, train_loader_wrapper, val_loader_wrapper, optimizer, device, num_epochs=num_epochs, eval_freq=5, eval_iter=5, start_context="Every effort moves you", tokenizer=tokenizer)
+
+# 
+# train_losses, val_losses, tokens_seen = train_model_simple(
+    # model=model, 
+    # train_loader_wrapper=train_loader_wrapper, 
+    # val_loader_wrapper=val_loader_wrapper, 
+    # optimizer=optimizer, 
+    # device=device, 
+    # num_epochs=num_epochs, 
+    # eval_freq=5, 
+    # eval_iter=5, 
+    # start_context="Every effort moves you", 
+    # tokenizer=tokenizer
+    # )
 
 
 # torch.manual_seed(123)
