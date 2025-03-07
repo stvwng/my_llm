@@ -2,6 +2,37 @@ import torch
 import torch.nn as nn
 import attention
 
+'''
+This module instantiates the large language model (GPTModel), which consists
+of several TransformerBlocks.
+
+Also included are several helper classes:
+
+1. TransformerBlock
+This is the basic building block of the LLM and consists of two parts:
+
+A. The first is an attention mechanism (implemented in the attention module), which 
+enables the model to focus on different parts of the input and understand context and 
+relationships between words. This calculates how much each word in the input 
+should "attend" to other words, based on their relationships.
+
+B. The second is a feed forward neural network that performs a nonlinear 
+transformation of the input, modifying the data individually at each position.
+
+2. FeedForward
+This class implements the feed forward neural network. See additional comments below.
+
+3. GELU
+This class implements the GELU (Gaussian error linear unit) activation function, 
+used in the feed forward network. See additional comments below.
+
+4. LayerNorm
+This class implements layer normalization to improve model training.
+See additional comments below.
+
+
+'''
+
 class GPTModel(nn.Module):
     def __init__(
         self, 
@@ -46,6 +77,15 @@ class GPTModel(nn.Module):
         self.out_head = nn.Linear(emb_dim, vocab_size, bias=False)
         
     def forward(self, in_index):
+        '''
+        Handles data flow through the model:
+        1. computes token and positional embeddings for input indices
+        2. applies dropout
+        3. processes data in TransformerBlocks
+        4. applies normalization
+        5. produces logits (raw scores of the model's predictions before conversion into probabilities)
+        with linear output layer
+        '''
         batch_size, seq_len = in_index.shape
         token_embeddings = self.token_embedding(in_index)
         # device setting allows training the model on a CPU or GPU
@@ -55,8 +95,8 @@ class GPTModel(nn.Module):
         x = self.dropout_embedding(x)
         x = self.transformer_blocks(x)
         x = self.final_norm(x)
-        logits = self.out_head(x)
-        return logits
+        logits = self.out_head(x) # logits are the raw scores for model's predictions before they are converted into probabilities.
+        return logits 
     
 class TransformerBlock(nn.Module):
     def __init__(self, emb_dim, context_length, num_heads, drop_rate, qkv_bias):
