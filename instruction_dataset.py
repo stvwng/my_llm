@@ -1,6 +1,30 @@
 import torch
 from torch.utils.data import Dataset
 
+def format_input(entry):
+    '''
+    Argument
+    entry (dict): A Python dictionary with 3 keys: instruction, input, and output. This represents
+    the instruction given to the model, the input, and desired output.
+    E.g.,    
+    {
+        "instruction": "Evaluate the following phrase by transforming it into the spelling given.",
+        "input": "freind --> friend",
+        "output": "The spelling of the given phrase \"freind\" is incorrect, the correct spelling is \"friend\"."
+    }
+    
+    Returns a string with the instruction text and input text in a structured format.
+    '''
+    instruction_text = (
+        f"Below is an instruction that describes a task. "
+        f"Write a response that appropriately completes the request. "
+        f"\n\n### Instruction:\n{entry['instruction']}"
+    )
+    
+    input_text = (f"\n\n### Input:\n{entry['input']}" if entry['input'] else "")
+    
+    return instruction_text + input_text
+
 def collate(batch, pad_token_id=50256, ignore_index=-100, allowed_max_length=None, device="cpu"):
     # PyTorch's cross entropy function's default setting for the ignore_index is -100.
     # i.e., it will ignore targets labeled with -100
@@ -47,17 +71,6 @@ class InstructionDataset(Dataset):
             response_text = f"\n\n### Response:\n{entry['output']}"
             full_text = instruction_plus_input + response_text
             self.encoded_texts.append(tokenizer.encode(full_text))
-            
-    def format_input(self, entry):
-        instruction_text = (
-            f"Below is an instruction that describes a task. "
-            f"Write a response that appropriately completes the request. "
-            f"\n\n### Instruction:\n{entry['instruction']}"
-        )
-        
-        input_text = (f"\n\n### Input:\n{entry['input']}" if entry['input'] else "")
-        
-        return instruction_text + input_text
     
     def __getitem__(self, index):
         return self.encoded_texts[index]
