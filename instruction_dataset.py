@@ -8,15 +8,12 @@ def collate(batch, pad_token_id=50256, ignore_index=-100, allowed_max_length=Non
     batch_max_length = max(len(item)+1 for item in batch)
     inputs_list, targets_list = [], []
     
-    print("batch_max_length: ", batch_max_length)
-    
     for item in batch:
         new_item = item.copy()
         new_item += [pad_token_id]
         
         # pad sequence to max length
         padded = (new_item + [pad_token_id] * (batch_max_length - len(new_item)))
-        print("Padded length: ",len(padded))
         # truncate last token for inputs
         inputs = torch.tensor(padded[:-1])
         # shift targets by 1 to the right; i.e., we want to predict the next token
