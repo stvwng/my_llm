@@ -2,7 +2,9 @@ import torch
 import torch.nn as nn
 
 '''
-Implement multihead attention
+Implement multihead attention. This forms the attention mechanism used in the 
+TransformerBlock in the gpt_model module, i.e., the basic building blocks of the
+large language model.
 '''
 
 class Attention(nn.Module):
