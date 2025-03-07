@@ -6,12 +6,21 @@ import dataloader
 x = torch.rand(2, 4, 768)
 
 vocab_size = 50257
-context_length = 256 # shortened from 1024 for 
+context_length = 256
 emb_dim = 768
 num_heads = 12
 num_layers = 12
 drop_rate = 0.1
 qkv_bias = False
+
+'''
+This is Edith Wharton's short story, "The Verdict", and is included as a default choice for training the model.
+Given that it is a short story, a model trained on "The Verdict" will naturally be limited. But it allows
+the model to be trained in a few minutes on a M3 Mac.
+
+The training code in this module will also work with larger datasets and GPUs if those resources are available.
+'''
+verdict_file_path = "the-verdict.txt"
 
 tokenizer = tiktoken.get_encoding("gpt2")
 
@@ -22,6 +31,11 @@ model = gpt_model.GPTModel(
 model.eval()
 
 def generate(model, index, max_new_tokens, context_size, temperature=0.0, top_k=None, eos_id=None):
+    '''
+    Generate text with a model.
+    
+    
+    '''
     for _ in range(max_new_tokens):
         index_cond = index[:, -context_size:]
         with torch.no_grad():
@@ -62,31 +76,55 @@ def token_ids_to_text(token_ids, tokenizer):
     flat = token_ids.squeeze(0) # remove batch dimension
     return tokenizer.decode(flat.tolist())
 
-file_path = "the-verdict.txt"
-with open(file_path, "r", encoding="utf-8") as file:
-    text_data = file.read()
-    
-train_ratio = 0.9
-split_idx = int(train_ratio * len(text_data))
-train_data = text_data[:split_idx]
-val_data = text_data[split_idx:]
-
-torch.manual_seed(123)
-train_loader_wrapper = dataloader.GPTDataLoaderWrapper(
-    text = train_data,
-    batch_size = 2,
-    max_length=context_length,
-    stride=context_length
-)
-
-val_loader_wrapper = dataloader.GPTDataLoaderWrapper(
-    text = val_data,
-    batch_size = 2,
-    max_length = context_length,
-    stride = context_length,
+def create_training_and_validation_sets(
+    text_file_path="",
+    max_length=256,
+    batch_size=2,
+    stride=256,
+    train_ratio=0.9,
     drop_last=False,
-    shuffle=False,
-)
+    shuffle=False
+):
+    '''
+    Split data (text) into training and validation sets.
+    
+    Arguments:
+    text_file_path (string): the file path of the text file with the data for the model to be trained on
+    max_length (int): maximum number of tokens in a sample
+    batch_size (int): number of samples in each batch
+    stride (int): how much to "slide" the input window when creating a new batch
+    train_ratio (float): the ratio of the data to be used for training  
+    drop_last (boolean): drop the last batch if it is shorter than batch_size to prevent loss spikes in training
+    shuffle (boolean): shuffle data at every epoch 
+    
+    '''
+    
+    if text_file_path == "":
+        raise ValueError("Please include the text_file_path, i.e., the file path of the text file to be used for training")
+
+    with open(file_path, "r", encoding="utf-8") as file:
+        text_data = file.read()
+    split_idx = int(train_ratio * len(text_data))
+    train_data = text_data[:split_idx]
+    val_data = text_data[split_idx:]
+
+    train_loader_wrapper = dataloader.GPTDataLoaderWrapper(
+        text = train_data,
+        batch_size = 2,
+        max_length=context_length,
+        stride=context_length
+    )
+
+    val_loader_wrapper = dataloader.GPTDataLoaderWrapper(
+        text = val_data,
+        batch_size = 2,
+        max_length = context_length,
+        stride = context_length,
+        drop_last=False,
+        shuffle=False,
+    )
+    
+    return train_loader_wrapper, val_loader_wrapper
 
 def calc_loss_batch(input_batch, target_batch, model, device):
     '''
@@ -135,9 +173,6 @@ model.to(device)
 with torch.no_grad(): # disable gradient tracking for efficiency, because not training yet
     train_loss = calc_loss_loader(data_loader_wrapper=train_loader_wrapper, model=model, device=device)
     val_loss = calc_loss_loader(data_loader_wrapper=val_loader_wrapper, model=model, device=device)
-    
-# print("Training loss: ", train_loss)
-# print("Validatio loss: ", val_loss)
 
 def train_model_simple(
     model,
@@ -222,7 +257,8 @@ def generate_and_print_sample(
     print(decoded_text.replace("\n", " "))
     model.train()
     
-    
+
+train_loader_wrapper, val_loader_wrapper = create_training_and_validation_sets(text_file_path=verdict_file_path)
     
 # torch.manual_seed(123)
 # model.to(device)
