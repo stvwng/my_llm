@@ -4,6 +4,11 @@ from torch.utils.data import DataLoader
 import dataset
 
 class GPTDataLoaderWrapper():
+    '''
+    A wrapper that allows access to the PyTorch DataLoader for use in training the model.
+    Use to create the PyTorch Dataset and DataLoader with the input text that will be 
+    used to train the model.
+    '''
     def __init__(
         self,
         text,
@@ -15,9 +20,9 @@ class GPTDataLoaderWrapper():
         num_workers = 0 # number of CPU processes to use for preprocessing
         ):
         
-        self.gpt_dataset = None
+        self.gpt_dataset = None # PyTorch Dataset
         self.num_tokens = 0
-        self.gpt_dataloader = None
+        self.gpt_dataloader = None # PyTorch DataLoader
 
         # instantiate BPE (byte pair encoding) tokenizer
         tokenizer = tiktoken.get_encoding("gpt2")

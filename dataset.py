@@ -2,6 +2,10 @@ import torch
 from torch.utils.data import Dataset
 
 class GPTDataset(Dataset):
+    '''
+    PyTorch Dataset for the text that will be used to train the model.
+    The input text is chunked into sequences and converted into token ids.
+    '''
     def __init__(self, text, tokenizer, max_length, stride):
         self.input_token_ids = []
         self.target_token_ids = []
