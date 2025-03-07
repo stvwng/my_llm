@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
 
+'''
+Implement multihead attention
+'''
+
 class Attention(nn.Module):
     def __init__(
         self, 
