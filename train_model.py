@@ -22,13 +22,17 @@ The training code in this module will also work with larger datasets and GPUs if
 '''
 verdict_file_path = "the-verdict.txt"
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if torch.backends.mps.is_available:
+   device = torch.device("mps") # Apple Silicon
 tokenizer = tiktoken.get_encoding("gpt2")
-
-torch.manual_seed(123)
 model = gpt_model.GPTModel(
     context_length = context_length
 )
 model.eval()
+model.to(device)
+optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
+num_epochs = 10
 
 def generate(model, index, max_new_tokens, context_size, temperature=0.0, top_k=None, eos_id=None):
     '''
@@ -259,11 +263,6 @@ def generate_and_print_sample(
     
 
 train_loader_wrapper, val_loader_wrapper = create_training_and_validation_sets(text_file_path=verdict_file_path)
-    
-# torch.manual_seed(123)
-# model.to(device)
-# optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
-# num_epochs = 10
 
 # 
 # train_losses, val_losses, tokens_seen = train_model_simple(
