@@ -183,12 +183,12 @@ def create_training_and_validation_sets(
 def calc_loss_batch(input_batch, target_batch, model, device):
     '''
     Arguments
-    input_batch,
-    target_batch,
+    input_batch: batch of input data
+    target_batch: batch of data that we're trying to predict
     model (gpt_model.GPTModel): the LLM
     device (str): allows transfer to a GPU if available; "cuda", "cpu"
     
-    Returns the cross entropy loss between the input_batch and the target_batch
+    Returns the cross entropy loss between the inputs and targets for a single batch
     '''
     input_batch = input_batch.to(device)
     target_batch = target_batch.to(device)
@@ -207,11 +207,12 @@ def calc_loss_loader(
     Arguments:
     model (gpt_model.GPTModel): the LLM
     device (str): allows transfer to a GPU if available; "cuda", "cpu"
-    num_batches (int):
+    num_batches (int): number of batches
     data_loader_wrapper (dataloader.GPTDataLoaderWrapper): a wrapper that allows access to a PyTorch DataLoader
     data_loader (PyTorch DataLoader)
     Either a data_loader_wrapper or a data_loader is required.
     
+    Returns the average loss over all the batches sampled by a data loader.
     '''
     total_loss = 0.
     if data_loader_wrapper is not None:
