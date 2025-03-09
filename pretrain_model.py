@@ -34,9 +34,44 @@ model.to(device)
 optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
 num_epochs = 10
 
+""" 
+# Example
+train_loader_wrapper, val_loader_wrapper = create_training_and_validation_sets(text_file_path=verdict_file_path)
+
+train_losses, val_losses, tokens_seen = pretrain_model_simple(
+    model=model, 
+    train_loader_wrapper=train_loader_wrapper, 
+    val_loader_wrapper=val_loader_wrapper, 
+    optimizer=optimizer, 
+    device=device, 
+    num_epochs=num_epochs, 
+    eval_freq=5, 
+    eval_iter=5, 
+    start_context="Every effort moves you", 
+    tokenizer=tokenizer
+    )
+token_ids = generate(
+    model=model, 
+    index=text_to_token_ids("Every effort moves you", tokenizer).to(device),
+    max_new_tokens=15,
+    context_size=context_length,
+    top_k=25,
+    temperature=1.4
+    )
+print("Output: ", token_ids_to_text(token_ids, tokenizer)) """
+
 def generate(model, index, max_new_tokens, context_size, temperature=0.0, top_k=None, eos_id=None):
     '''
     Generate text with a model.
+    
+    Arguments:
+    model (gpt_model.GPTModel): the LLM
+    index:
+    max_new_tokens (int):
+    context_size (int):
+    temperature (float):
+    top_k (int): 
+    eos_id (int):
     
     
     '''
@@ -72,11 +107,26 @@ def generate(model, index, max_new_tokens, context_size, temperature=0.0, top_k=
     return index
 
 def text_to_token_ids(text, tokenizer):
+    '''
+    Arguments:
+    text (str): the text to be converted into token ids
+    tokenizer: the tokenizer to be used for the conversion
+    
+    Returns a tensor of token ids
+    
+    '''
     encoded = tokenizer.encode(text, allowed_special={'<|endoftexxt|>'})
     encoded_tensor = torch.tensor(encoded).unsqueeze(0) # add batch dimension
     return encoded_tensor
 
 def token_ids_to_text(token_ids, tokenizer):
+    '''
+    Arguments
+    token_ids: tensor of token ids
+    tokenizer: the tokenizer to be used for the conversion
+    
+    Returns a list of strings representing the token ids after conversion to text
+    '''
     flat = token_ids.squeeze(0) # remove batch dimension
     return tokenizer.decode(flat.tolist())
 
@@ -133,7 +183,12 @@ def create_training_and_validation_sets(
 def calc_loss_batch(input_batch, target_batch, model, device):
     '''
     Arguments
+    input_batch,
+    target_batch,
+    model (gpt_model.GPTModel): the LLM
     device (str): allows transfer to a GPU if available; "cuda", "cpu"
+    
+    Returns the cross entropy loss between the input_batch and the target_batch
     '''
     input_batch = input_batch.to(device)
     target_batch = target_batch.to(device)
@@ -148,6 +203,16 @@ def calc_loss_loader(
     data_loader_wrapper=None,
     data_loader=None,
 ):
+    '''
+    Arguments:
+    model (gpt_model.GPTModel): the LLM
+    device (str): allows transfer to a GPU if available; "cuda", "cpu"
+    num_batches (int):
+    data_loader_wrapper (dataloader.GPTDataLoaderWrapper): a wrapper that allows access to a PyTorch DataLoader
+    data_loader (PyTorch DataLoader)
+    Either a data_loader_wrapper or a data_loader is required.
+    
+    '''
     total_loss = 0.
     if data_loader_wrapper is not None:
         dl = data_loader_wrapper.gpt_dataloader
@@ -172,7 +237,7 @@ def calc_loss_loader(
         
     return total_loss / num_batches
 
-def train_model_simple(
+def pretrain_model_simple(
     model,
     optimizer,
     device,
@@ -255,27 +320,3 @@ def generate_and_print_sample(
     print(decoded_text.replace("\n", " "))
     model.train()
     
-# Example
-train_loader_wrapper, val_loader_wrapper = create_training_and_validation_sets(text_file_path=verdict_file_path)
-
-train_losses, val_losses, tokens_seen = train_model_simple(
-    model=model, 
-    train_loader_wrapper=train_loader_wrapper, 
-    val_loader_wrapper=val_loader_wrapper, 
-    optimizer=optimizer, 
-    device=device, 
-    num_epochs=num_epochs, 
-    eval_freq=5, 
-    eval_iter=5, 
-    start_context="Every effort moves you", 
-    tokenizer=tokenizer
-    )
-token_ids = generate(
-    model=model, 
-    index=text_to_token_ids("Every effort moves you", tokenizer).to(device),
-    max_new_tokens=15,
-    context_size=context_length,
-    top_k=25,
-    temperature=1.4
-    )
-print("Output: ", token_ids_to_text(token_ids, tokenizer))

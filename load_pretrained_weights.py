@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import gpt_model
-import train_model
+import pretrain_model
 import tiktoken
 from gpt_download import download_and_load_gpt2
 settings, params = download_and_load_gpt2(model_size="124M", models_dir="gpt2")
@@ -112,13 +112,13 @@ load_weights_into_gpt(gpt, params)
 gpt.to(device)
 
 torch.manual_seed(123)
-token_ids = train_model.generate(
+token_ids = pretrain_model.generate(
     model=gpt,
-    index=train_model.text_to_token_ids("Every effort moves you", tokenizer).to(device),
+    index=pretrain_model.text_to_token_ids("Every effort moves you", tokenizer).to(device),
     max_new_tokens=25,
     context_size=1024,
     top_k=50,
     temperature=1.5
 )
 
-print("Output:\n", train_model.token_ids_to_text(token_ids, tokenizer))
+print("Output:\n", pretrain_model.token_ids_to_text(token_ids, tokenizer))
