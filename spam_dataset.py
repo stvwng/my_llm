@@ -2,6 +2,11 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
+'''
+A PyTorch Dataset for spam text messages.
+This is intended for use with the spam_classifier notebook.
+'''
+
 class SpamDataset(Dataset):
     def __init__(self, csv_file, tokenizer, max_length=None, pad_token_id=50256):
         self.data = pd.read_csv(csv_file)

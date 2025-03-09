@@ -5,27 +5,6 @@ import gpt_model
 import pretrain_model
 import tiktoken
 from gpt_download import download_and_load_gpt2
-settings, params = download_and_load_gpt2(model_size="124M", models_dir="gpt2")
-
-# print("Settings: ", settings)
-# print()
-# print("Params keys: ", params.keys())
-# print("Params token embedding weights: ", params["wte"])
-# print("Token embedding weights shape: ", params["wte"].shape)
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-tokenizer = tiktoken.get_encoding("gpt2")
-
-gpt = gpt_model.GPTModel(
-    vocab_size = 50257,
-    context_length = 1024,
-    emb_dim = 768,
-    num_heads = 12,
-    num_layers = 12,
-    drop_rate = 0.0,
-    qkv_bias = True
-)
-gpt.eval()
 
 def assign(left, right):
     # helper function to check whether 2 tensors or arrays have the same dimensions or shape
@@ -108,6 +87,30 @@ def load_weights_into_gpt(gpt, params):
     gpt.final_norm.shift = assign(gpt.final_norm.scale, params["b"])
     gpt.out_head.weight = assign(gpt.out_head.weight, params["wte"])
     
+'''
+Example:
+    
+settings, params = download_and_load_gpt2(model_size="124M", models_dir="gpt2")
+
+print("Settings: ", settings)
+print()
+print("Params keys: ", params.keys())
+print("Params token embedding weights: ", params["wte"])
+print("Token embedding weights shape: ", params["wte"].shape)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+tokenizer = tiktoken.get_encoding("gpt2")
+
+gpt = gpt_model.GPTModel(
+    vocab_size = 50257,
+    context_length = 1024,
+    emb_dim = 768,
+    num_heads = 12,
+    num_layers = 12,
+    drop_rate = 0.0,
+    qkv_bias = True
+)
+gpt.eval()
 load_weights_into_gpt(gpt, params)
 gpt.to(device)
 
@@ -122,3 +125,4 @@ token_ids = pretrain_model.generate(
 )
 
 print("Output:\n", pretrain_model.token_ids_to_text(token_ids, tokenizer))
+'''
