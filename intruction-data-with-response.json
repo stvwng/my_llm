@@ -63,7 +63,7 @@
         "instruction": "What is the capital of Denmark?",
         "input": "",
         "output": "The capital of Denmark is Copenhagen.",
-        "model_response": "The capital of Denmark is Copenhagen."
+        "model_response": "The capital of Denmark is Dansk."
     },
     {
         "instruction": "What is the opposite of 'wet'?",
@@ -81,13 +81,13 @@
         "instruction": "What is the chemical symbol for mercury?",
         "input": "",
         "output": "Hg.",
-        "model_response": "The chemical symbol for mercury is mercury."
+        "model_response": "The chemical symbol for mercury is Mg."
     },
     {
         "instruction": "Describe the process of active transport in cells.",
         "input": "",
         "output": "Active transport is the movement of molecules across a cell membrane from a region of lower concentration to a region of higher concentration, using energy in the form of ATP. This process is crucial for maintaining cellular homeostasis.",
-        "model_response": "Transport is the process by which cells migrate from one cell to another. It is the process by which the body changes from a cell to a mass in a cell."
+        "model_response": "Transport is the process by which cells migrate from one cell to another. It is the process by which cells migrate from one cell to another cell."
     },
     {
         "instruction": "Classify the following items as either solid, liquid, or gas.",
@@ -147,7 +147,7 @@
         "instruction": "Translate 'library' into Spanish.",
         "input": "",
         "output": "The Spanish word for 'library' is 'biblioteca'.",
-        "model_response": "The Spanish translation of 'library' is 'La vuelana' (The Spanish translation of 'The Library')."
+        "model_response": "The Spanish translation of 'library' is 'La vuelana' (The Spanish translation of 'library' is 'La vuelana')."
     },
     {
         "instruction": "Define the term 'hyperbole'.",
@@ -225,7 +225,7 @@
         "instruction": "Convert this sentence to passive voice",
         "input": "The gardener watered the plants.",
         "output": "The plants were watered by the gardener.",
-        "model_response": "The plants watered the gardener."
+        "model_response": "The plants watered the plants."
     },
     {
         "instruction": "What is the past tense of 'throw'?",
@@ -429,7 +429,7 @@
         "instruction": "Generate a sentence using the word 'transient'.",
         "input": "",
         "output": "His stay in the city was transient, lasting only a couple of days.",
-        "model_response": "He is very compassionate and always gives a smile."
+        "model_response": "He is very calm and composed."
     },
     {
         "instruction": "Translate 'I am lost' into Italian.",
@@ -513,7 +513,7 @@
         "instruction": "Generate a sentence using the word 'elucidate'.",
         "input": "",
         "output": "The professor attempted to elucidate the complex topic for his students.",
-        "model_response": "He is very charismatic and always shows a smile."
+        "model_response": "He is very calm and composed."
     },
     {
         "instruction": "Correct the sentence.",
