@@ -21,10 +21,14 @@ the model to be trained in a few minutes on a M3 Mac.
 The training code in this module will also work with larger datasets and GPUs if those resources are available.
 '''
 verdict_file_path = "the-verdict.txt"
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-if torch.backends.mps.is_available:
-   device = torch.device("mps") # Apple Silicon
+   
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_available:
+    device = torch.device("mps") # Apple Silicon
+else:
+    device = "cpu"
+    
 tokenizer = tiktoken.get_encoding("gpt2")
 model = gpt_model.GPTModel(
     context_length = context_length
