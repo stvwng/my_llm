@@ -106,7 +106,7 @@ def create_training_and_validation_sets(
     if text_file_path == "":
         raise ValueError("Please include the text_file_path, i.e., the file path of the text file to be used for training")
 
-    with open(file_path, "r", encoding="utf-8") as file:
+    with open(text_file_path, "r", encoding="utf-8") as file:
         text_data = file.read()
     split_idx = int(train_ratio * len(text_data))
     train_data = text_data[:split_idx]
@@ -171,12 +171,6 @@ def calc_loss_loader(
             break
         
     return total_loss / num_batches
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
-with torch.no_grad(): # disable gradient tracking for efficiency, because not training yet
-    train_loss = calc_loss_loader(data_loader_wrapper=train_loader_wrapper, model=model, device=device)
-    val_loss = calc_loss_loader(data_loader_wrapper=val_loader_wrapper, model=model, device=device)
 
 def train_model_simple(
     model,
@@ -261,31 +255,27 @@ def generate_and_print_sample(
     print(decoded_text.replace("\n", " "))
     model.train()
     
-
+# Example
 train_loader_wrapper, val_loader_wrapper = create_training_and_validation_sets(text_file_path=verdict_file_path)
 
-# 
-# train_losses, val_losses, tokens_seen = train_model_simple(
-    # model=model, 
-    # train_loader_wrapper=train_loader_wrapper, 
-    # val_loader_wrapper=val_loader_wrapper, 
-    # optimizer=optimizer, 
-    # device=device, 
-    # num_epochs=num_epochs, 
-    # eval_freq=5, 
-    # eval_iter=5, 
-    # start_context="Every effort moves you", 
-    # tokenizer=tokenizer
-    # )
-
-
-# torch.manual_seed(123)
-# token_ids = generate(
-#     model=model, 
-#     index=text_to_token_ids("Every effort moves you", tokenizer),
-#     max_new_tokens=15,
-#     context_size=context_length,
-#     top_k=25,
-#     temperature=1.4
-#     )
-# print("Output: ", token_ids_to_text(token_ids, tokenizer))
+train_losses, val_losses, tokens_seen = train_model_simple(
+    model=model, 
+    train_loader_wrapper=train_loader_wrapper, 
+    val_loader_wrapper=val_loader_wrapper, 
+    optimizer=optimizer, 
+    device=device, 
+    num_epochs=num_epochs, 
+    eval_freq=5, 
+    eval_iter=5, 
+    start_context="Every effort moves you", 
+    tokenizer=tokenizer
+    )
+token_ids = generate(
+    model=model, 
+    index=text_to_token_ids("Every effort moves you", tokenizer).to(device),
+    max_new_tokens=15,
+    context_size=context_length,
+    top_k=25,
+    temperature=1.4
+    )
+print("Output: ", token_ids_to_text(token_ids, tokenizer))
