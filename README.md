@@ -1,9 +1,11 @@
 # Coding My Own Large Language Model (LLM)
 
 ## Overview
-I'm fascinated by AI, and indeed, I have a hard time understanding how anybody can't be fascinated by it. The first time I used ChatGPT felt like magic, and I wanted to better understand how a large language model (LLM) works. There's no better way to learn something than by going back to first principles and building it from the ground up. This repo is the result of that effort, including all the code I've written to implement and pretrain a LLM. I've also included Python notebooks for fine-tuning the model for a classification task (determining whether a text message is spam/not spam) and to act as a personal assistant.
+I'm fascinated by AI, and indeed, I have a hard time understanding how anybody can't be fascinated by it. The first time I used ChatGPT felt like magic, and I wanted to better understand how a large language model (LLM) works. There's no better way to learn something than by going back to first principles and building it from the ground up. 
 
-I want to credit Sebasstian Raschka's [Build a Large Language Model from Scratch](https://www.manning.com/books/build-a-large-language-model-from-scratch) for teaching me the process and how a LLM works under the hood.
+This repo is the result of that effort, including all the code I've written to implement and pretrain a LLM. I've also included Python notebooks for fine-tuning the model for a classification task (determining whether a text message is spam/not spam) and to act as a personal assistant.
+
+I learned a lot and also had a lot of fun coding my own LLM, and I want to credit Sebasstian Raschka's [Build a Large Language Model from Scratch](https://www.manning.com/books/build-a-large-language-model-from-scratch) for teaching me the process and how a LLM works under the hood.
 
 ## Code
 
